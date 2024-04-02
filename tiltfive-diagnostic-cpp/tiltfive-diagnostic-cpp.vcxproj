@@ -134,6 +134,14 @@
     <None Include="..\.gitignore" />
     <None Include="..\README.md" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\include\errors.h" />
+    <ClInclude Include="src\include\errors.hpp" />
+    <ClInclude Include="src\include\result.hpp" />
+    <ClInclude Include="src\include\TiltFiveNative.h" />
+    <ClInclude Include="src\include\TiltFiveNative.hpp" />
+    <ClInclude Include="src\include\types.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

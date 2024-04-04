@@ -24,6 +24,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 /// \private
 using Client = std::shared_ptr<tiltfive::Client>;
@@ -157,14 +158,12 @@ void writeImageBufferToFile(const char* filename, const unsigned char* buffer, s
 auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 {
     T5_CamImage* camImageBuffer = new T5_CamImage();
-    //T5_CamImage* camImageBuffer1 = new T5_CamImage();
-    //T5_CamImage* camImageBuffer2 = new T5_CamImage();
-
-    auto submitResult = initCameraImage(glasses, camImageBuffer); // returns "SUCCESS"
-    //auto submitResult1 = initCameraImage(glasses, camImageBuffer1);    
-    //auto submitResult2 = initCameraImage(glasses, camImageBuffer2);
+    auto submitResult = initCameraImage(glasses, camImageBuffer);
 
     int count = 0;
+    int successCount = 0;
+    std::map<std::error_code, int> errorCodeCount;
+    bool dumped = false;
 
     auto start = std::chrono::steady_clock::now();
     do
@@ -173,38 +172,43 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 
         auto pose = glasses->getLatestGlassesPose(kT5_GlassesPoseUsage_GlassesPresentation);
         auto imageRead = glasses->getFilledCamImageBuffer();
+        errorCodeCount[imageRead.error()]++;
 
-        if (!pose)
-        {
-            if (pose.error() == tiltfive::Error::kTryAgain)
+        if (imageRead.error().value() == 0) {
+
+            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes";
+
+            successCount++;
+            if (!dumped)
             {
-                std::cout << "\rPose unavailable - Is gameboard visible?                         ";
+                writeImageBufferToFile("image.raw", camImageBuffer->pixelData, T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT);
             }
             else
             {
-                return pose.error();
+                dumped = true;
+            }
+            auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
+            if (resubmitResult.error().value() != 0) {
+                std::cout << "\n\n** ERROR ON RESET ***\n\n";
             }
         }
-        else
-        {
-            if (imageRead.error() == tiltfive::Error::kTryAgain) {
-                std::cout << "\rPixels: " << camImageBuffer->posCAM_GBD.x << ", " <<
-                    camImageBuffer->posCAM_GBD.y << ", " <<
-                    camImageBuffer->posCAM_GBD.z << " - '" <<
-                    camImageBuffer->illuminationMode <<
-                    "'                                                       ";
-            }
-            else {
-                std::cout << "\n\nImage Non-Error Result: " << imageRead.error();
-            }
-        }
-    } while ((std::chrono::steady_clock::now() - start) < 10000_ms);
+       
+    } while ((std::chrono::steady_clock::now() - start) < 5000_ms);
 
-    writeImageBufferToFile("image.raw", camImageBuffer->pixelData, T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT);
+    std::cout << "\n\nError Codes:\n";
+    for (const auto& pair : errorCodeCount) {
+        std::cout << " * Code: " << pair.first << " returned " << pair.second << " times.\n";
+    }
 
-    glasses->cancelCamImageBuffer(camImageBuffer->pixelData);
-    //glasses->cancelCamImageBuffer(camImageBuffer1->pixelData);
-    //glasses->cancelCamImageBuffer(camImageBuffer2->pixelData);
+    // TODO: Debug the "after glasses release" call
+    if (camImageBuffer->pixelData == nullptr)
+    {
+        std::cout << "\n\nNULL POINTER SO IGNORING\n";
+    }
+    else
+    {
+        glasses->cancelCamImageBuffer(camImageBuffer->pixelData);
+    }
 
     return tiltfive::kSuccess;
 }

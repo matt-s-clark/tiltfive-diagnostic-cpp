@@ -128,9 +128,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\diagnostic.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\.gitignore" />
     <None Include="..\README.md" />
   </ItemGroup>
@@ -141,6 +138,9 @@
     <ClInclude Include="src\include\TiltFiveNative.h" />
     <ClInclude Include="src\include\TiltFiveNative.hpp" />
     <ClInclude Include="src\include\types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\camera.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

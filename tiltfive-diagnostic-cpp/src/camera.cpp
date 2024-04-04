@@ -214,6 +214,13 @@ auto doThingsWithGlasses(Glasses& glasses) -> tiltfive::Result<void>
 {
     std::cout << "Doing something with : " << glasses << std::endl;
 
+    // Set Config Parameters
+    T5_CameraStreamConfig cameraStreamConfig = T5_CameraStreamConfig();
+    cameraStreamConfig.cameraIndex = 0;
+    cameraStreamConfig.enabled = true;
+
+    glasses->configureCameraStream(cameraStreamConfig);
+
     /// [NonExclusiveOps]
     // Get the friendly name for the glasses
     // This is the name that's user set in the Tilt Five™ control panel.

@@ -200,12 +200,8 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
         std::cout << " * Code: " << pair.first << " returned " << pair.second << " times.\n";
     }
 
-    // TODO: Debug the "after glasses release" call
-    if (camImageBuffer->pixelData == nullptr)
-    {
-        std::cout << "\n\nNULL POINTER SO IGNORING\n";
-    }
-    else
+
+    if (successCount > 0)
     {
         glasses->cancelCamImageBuffer(camImageBuffer->pixelData);
     }

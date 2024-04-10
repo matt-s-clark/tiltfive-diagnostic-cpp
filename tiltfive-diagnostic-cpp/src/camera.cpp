@@ -166,7 +166,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
     T5_CamImage* camImageBuffer = new T5_CamImage();
     auto submitResult = initCameraImage(glasses, camImageBuffer);
 
-    cv::namedWindow("Test Window", cv::WINDOW_NORMAL);
+    cv::namedWindow("Test Window", cv::WINDOW_AUTOSIZE);
 
     int count = 0;
     int successCount = 0;

@@ -183,16 +183,17 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 
         if (imageRead.error().value() == 0) {
             cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
-                cv::Scalar(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT * T5_MIN_CAM_IMAGE_BUFFER_WIDTH));
+                camImageBuffer->pixelData);
 
             const std::string empty = img.data ? "empty" : "has data";
 
             std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - " << empty;
+            cv::imshow("Test Window", img);
+            int k = cv::waitKey(1);
 
             successCount++;
             if (successCount == 1)
             {
-                cv::imshow("Test Window", img);
                 writeImageBufferToFile("image.raw", camImageBuffer->pixelData, T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT);
             }
             auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
@@ -201,7 +202,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             }
         }
        
-    } while ((std::chrono::steady_clock::now() - start) < 7000_ms);
+    } while ((std::chrono::steady_clock::now() - start) < 20000_ms);
 
     std::cout << "\n\nError Codes:\n";
     for (const auto& pair : errorCodeCount) {

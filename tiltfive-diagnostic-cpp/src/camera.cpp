@@ -21,10 +21,16 @@
 
 #include "include/TiltFiveNative.hpp"
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 #include <chrono>
 #include <iostream>
 #include <fstream>
 #include <map>
+
+using namespace cv;
 
 /// \private
 using Client = std::shared_ptr<tiltfive::Client>;
@@ -160,10 +166,11 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
     T5_CamImage* camImageBuffer = new T5_CamImage();
     auto submitResult = initCameraImage(glasses, camImageBuffer);
 
+    cv::namedWindow("Test Window", cv::WINDOW_NORMAL);
+
     int count = 0;
     int successCount = 0;
     std::map<std::error_code, int> errorCodeCount;
-    bool dumped = false;
 
     auto start = std::chrono::steady_clock::now();
     do
@@ -175,17 +182,18 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
         errorCodeCount[imageRead.error()]++;
 
         if (imageRead.error().value() == 0) {
+            cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
+                cv::Scalar(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT * T5_MIN_CAM_IMAGE_BUFFER_WIDTH));
 
-            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes";
+            const std::string empty = img.data ? "empty" : "has data";
+
+            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - " << empty;
 
             successCount++;
-            if (!dumped)
+            if (successCount == 1)
             {
+                cv::imshow("Test Window", img);
                 writeImageBufferToFile("image.raw", camImageBuffer->pixelData, T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT);
-            }
-            else
-            {
-                dumped = true;
             }
             auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
             if (resubmitResult.error().value() != 0) {
@@ -193,13 +201,12 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             }
         }
        
-    } while ((std::chrono::steady_clock::now() - start) < 5000_ms);
+    } while ((std::chrono::steady_clock::now() - start) < 7000_ms);
 
     std::cout << "\n\nError Codes:\n";
     for (const auto& pair : errorCodeCount) {
         std::cout << " * Code: " << pair.first << " returned " << pair.second << " times.\n";
     }
-
 
     if (successCount > 0)
     {

@@ -143,6 +143,14 @@ auto initCameraImage(Glasses& glasses, T5_CamImage* imageBuffer) -> tiltfive::Re
     return result;
 }
 
+static std::string roundNum(float num)
+{
+    double value = std::round(num * 1000.0) / 1000.0;
+    std::string num_text = std::to_string(value);
+
+    return num_text.substr(0, num_text.find(".") + 4);
+}
+
 /// [ExclusiveOps]
 auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 {
@@ -161,6 +169,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
     int count = 0;
     int successCount = 0;
     std::map<std::error_code, int> errorCodeCount;
+    std::map<float, int> xPosDict;
 
     auto start = std::chrono::steady_clock::now();
     do
@@ -171,13 +180,37 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
         auto imageRead = glasses->getFilledCamImageBuffer();
         errorCodeCount[imageRead.error()]++;
 
+        // posCAM_GBD doesn't seem to work. This code is for debugging.
+        auto it = xPosDict.find(camImageBuffer->posCAM_GBD.x);
+        if (it != xPosDict.end()) {
+            xPosDict[camImageBuffer->posCAM_GBD.x]++;
+        }
+        else {
+            xPosDict[camImageBuffer->posCAM_GBD.x] = 1;
+        }
+
         if (imageRead.error().value() == 0) {
             cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
                 camImageBuffer->pixelData);
 
-            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes";
             cv::imshow("Test Window", img);
             int k = cv::waitKey(1);
+
+            if (!pose)
+            {
+                std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - err, err, err -";
+            }
+            else
+            {
+                std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - "
+                    << roundNum(pose->posGLS_GBD.x) << ", "
+                    << roundNum(pose->posGLS_GBD.y) << ", "
+                    << roundNum(pose->posGLS_GBD.z) << " - "
+                    << roundNum(pose->rotToGLS_GBD.x) << ", " 
+                    << roundNum(pose->rotToGLS_GBD.y) << ", "
+                    << roundNum(pose->rotToGLS_GBD.z);
+            }
+
 
             successCount++;
             if (successCount == 1)
@@ -192,6 +225,8 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
                     std::cerr << "\n\nError saving the image.\n\n" << std::endl;
                 }
             }
+
+            // If you need to spend some time processing the image, you can submit an alternate CamImageBuffer, rather than reuse this one.
             auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
             if (resubmitResult.error().value() != 0) {
                 std::cout << "\n\n** ERROR ON RESET ***\n\n";
@@ -200,11 +235,17 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
        
     } while ((std::chrono::steady_clock::now() - start) < 20000_ms);
 
-    std::cout << "\n\nError Codes:\n";
-    for (const auto& pair : errorCodeCount) {
-        std::cout << " * Code: " << pair.first << " returned " << pair.second << " times.\n";
+    std::cout << "\n\X Positions:\n";
+    for (const auto& pair : xPosDict) {
+        std::cout << " * Position: " << pair.first << " returned " << pair.second << " times.\n";
     }
 
+    std::cout << "\n\nError Codes:\n";
+    for (const auto& pair : errorCodeCount) {
+        std::cout << " * Type '" << pair.first << "' returned " << pair.second << " times.\n";
+    }
+
+    // TODO: Determine a better way to determine if the image buffer needs to be cleared, successCount seems like a hack
     if (successCount > 0)
     {
         glasses->cancelCamImageBuffer(camImageBuffer->pixelData);

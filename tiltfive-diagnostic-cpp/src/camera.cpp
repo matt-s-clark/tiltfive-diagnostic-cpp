@@ -143,26 +143,16 @@ auto initCameraImage(Glasses& glasses, T5_CamImage* imageBuffer) -> tiltfive::Re
     return result;
 }
 
-void writeImageBufferToFile(const char* filename, const unsigned char* buffer, size_t bufferSize) {
-    // Open file in binary mode
-    std::ofstream file(filename, std::ios::binary);
-
-    // Check if the file was opened successfully
-    if (!file) {
-        std::cerr << "Could not open the file for writing.\n";
-        return;
-    }
-
-    // Write the buffer to the file
-    file.write(reinterpret_cast<const char*>(buffer), bufferSize);
-
-    // Close the file
-    file.close();
-}
-
 /// [ExclusiveOps]
 auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 {
+    auto readyResult = glasses->ensureReady();
+    std::cout << "Glasses Status: " << readyResult << "\n";
+    if (readyResult.error().value() != T5_SUCCESS) {
+        std::cout << "*** GLASSES UNAVAILABLE\n";
+        return readyResult;
+    }
+
     T5_CamImage* camImageBuffer = new T5_CamImage();
     auto submitResult = initCameraImage(glasses, camImageBuffer);
 
@@ -185,16 +175,22 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
                 camImageBuffer->pixelData);
 
-            const std::string empty = img.data ? "empty" : "has data";
-
-            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - " << empty;
+            std::cout << "\rImage Success " << successCount << " times out of " << count << " passes";
             cv::imshow("Test Window", img);
             int k = cv::waitKey(1);
 
             successCount++;
             if (successCount == 1)
             {
-                writeImageBufferToFile("image.raw", camImageBuffer->pixelData, T5_MIN_CAM_IMAGE_BUFFER_WIDTH * T5_MIN_CAM_IMAGE_BUFFER_HEIGHT);
+                // Save the Mat as a PNG image
+                bool success = cv::imwrite("camera-frame.png", img);
+
+                if (success) {
+                    std::cout << "\n\nImage saved successfully as 'camera-frame.png'." << std::endl;
+                }
+                else {
+                    std::cerr << "\n\nError saving the image.\n\n" << std::endl;
+                }
             }
             auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
             if (resubmitResult.error().value() != 0) {

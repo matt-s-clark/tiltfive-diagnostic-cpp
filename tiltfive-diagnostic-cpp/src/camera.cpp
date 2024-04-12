@@ -198,7 +198,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 
             if (!pose)
             {
-                std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - err, err, err -";
+                std::cout << "\rImage Success " << successCount << " times out of " << count << " passes - err, err, err - err, err, err, err";
             }
             else
             {
@@ -208,7 +208,8 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
                     << roundNum(pose->posGLS_GBD.z) << " - "
                     << roundNum(pose->rotToGLS_GBD.x) << ", " 
                     << roundNum(pose->rotToGLS_GBD.y) << ", "
-                    << roundNum(pose->rotToGLS_GBD.z);
+                    << roundNum(pose->rotToGLS_GBD.z) << ", "
+                    << roundNum(pose->rotToGLS_GBD.w);
             }
 
 

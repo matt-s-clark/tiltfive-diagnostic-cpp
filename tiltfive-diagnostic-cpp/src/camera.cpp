@@ -24,6 +24,8 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/objdetect/aruco_dictionary.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -171,6 +173,13 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
     std::map<std::error_code, int> errorCodeCount;
     std::map<float, int> xPosDict;
 
+    // Setup Aruco marker detection
+    std::vector<int> markerIds;
+    std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
+    cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
+    cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    cv::aruco::ArucoDetector detector(dictionary, detectorParams);
+
     auto start = std::chrono::steady_clock::now();
     do
     {
@@ -193,7 +202,12 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
                 camImageBuffer->pixelData);
 
-            cv::imshow("Test Window", img);
+            detector.detectMarkers(img, markerCorners, markerIds, rejectedCandidates);
+
+            cv::Mat outputImage = img.clone();
+            cv::aruco::drawDetectedMarkers(outputImage, markerCorners, markerIds);
+
+            cv::imshow("Test Window", outputImage);
             int k = cv::waitKey(1);
 
             if (!pose)
@@ -217,7 +231,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             if (successCount == 1)
             {
                 // Save the Mat as a PNG image
-                bool success = cv::imwrite("camera-frame.png", img);
+                bool success = cv::imwrite("camera-frame.png", outputImage);
 
                 if (success) {
                     std::cout << "\n\nImage saved successfully as 'camera-frame.png'." << std::endl;
@@ -232,9 +246,16 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             if (resubmitResult.error().value() != 0) {
                 std::cout << "\n\n** ERROR ON RESET ***\n\n";
             }
+
+            // Quit when user presses 'q' key
+            const int Q_KEY = 113;
+            if (k == Q_KEY)
+            {
+                break;
+            }
         }
        
-    } while ((std::chrono::steady_clock::now() - start) < 20000_ms);
+    } while ((std::chrono::steady_clock::now() - start) < 100000_ms);
 
     std::cout << "\n\X Positions:\n";
     for (const auto& pair : xPosDict) {

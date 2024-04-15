@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;C:\dev\code\visual-studio\opencv\build\include;C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +121,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\dev\code\visual-studio\tiltfive-diagnostic-cpp\tiltfive-diagnostic-cpp\src\include;C:\dev\code\visual-studio\opencv\build\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

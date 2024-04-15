@@ -158,7 +158,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 {
     auto readyResult = glasses->ensureReady();
     std::cout << "Glasses Status: " << readyResult << "\n";
-    if (readyResult.error().value() != T5_SUCCESS) {
+    if (!readyResult) {
         std::cout << "*** GLASSES UNAVAILABLE\n";
         return readyResult;
     }
@@ -198,7 +198,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
             xPosDict[camImageBuffer->posCAM_GBD.x] = 1;
         }
 
-        if (imageRead.error().value() == 0) {
+        if (imageRead) {
             cv::Mat img(T5_MIN_CAM_IMAGE_BUFFER_HEIGHT, T5_MIN_CAM_IMAGE_BUFFER_WIDTH, CV_8U,
                 camImageBuffer->pixelData);
 
@@ -243,7 +243,7 @@ auto readPoses(Glasses& glasses) -> tiltfive::Result<void>
 
             // If you need to spend some time processing the image, you can submit an alternate CamImageBuffer, rather than reuse this one.
             auto resubmitResult = glasses->submitEmptyCamImageBuffer(camImageBuffer);
-            if (resubmitResult.error().value() != 0) {
+            if (!resubmitResult) {
                 std::cout << "\n\n** ERROR ON RESET ***\n\n";
             }
 

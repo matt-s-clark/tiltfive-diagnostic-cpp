@@ -22,3 +22,6 @@ Release
 ipch
 *sdf
 .vs/
+
+# Project specific excludes
+tiltfive-diagnostic-cpp/camera-frame.png

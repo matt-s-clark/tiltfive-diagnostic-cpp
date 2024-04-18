@@ -1,9 +1,9 @@
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/objdetect/aruco_dictionary.hpp>
-#include <opencv2/objdetect/aruco_detector.hpp>
 #include <iostream>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
+#include <opencv2/objdetect/aruco_dictionary.hpp>
 
 using namespace cv;
 
@@ -12,8 +12,7 @@ int detectArucoMarker19() {
 	std::cout << "Image Path: " << image_path << std::endl;
 	cv::Mat img = cv::imread(image_path, IMREAD_COLOR);
 
-	if (img.empty())
-	{
+	if (img.empty()) {
 		std::cout << "Could not read image" << std::endl;
 		return 1;
 	}
@@ -33,10 +32,8 @@ int detectArucoMarker19() {
 	return cv::waitKey(0);
 }
 
-int main()
-{
+int main() {
 	detectArucoMarker19();
 
 	return 0;
-
 }
